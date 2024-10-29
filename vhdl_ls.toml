@@ -1,0 +1,13 @@
+[libraries]
+
+lib3.files = [
+    'arithmetic_operators/full_sub.vhd'
+]
+
+lib2.files = [
+    'arithmetic_operators/full_adder.vhd'
+]
+
+lib1.files = [
+    'alu.vhd'
+]
