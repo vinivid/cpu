@@ -1,11 +1,19 @@
 [libraries]
 
+lib5.files = [
+    'register.vhd'
+]
+
+lib4.files = [
+    'counter.vhd' 
+]
+
 lib3.files = [
-    'arithmetic_operators/full_sub.vhd'
+    'ram256x8.vhd'
 ]
 
 lib2.files = [
-    'arithmetic_operators/full_adder.vhd'
+    'logic_unit.vhd'
 ]
 
 lib1.files = [
