@@ -1,7 +1,11 @@
 [libraries]
 
+lib6.files = [
+    'arithmetic/full_adder.vhd'
+]
+
 lib5.files = [
-    'register.vhd'
+    'reg.vhd'
 ]
 
 lib4.files = [
