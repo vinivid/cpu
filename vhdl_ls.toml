@@ -1,7 +1,7 @@
 [libraries]
 
 lib6.files = [
-    'arithmetic/full_adder.vhd'
+    'arithmetic/adder_sub.vhd'
 ]
 
 lib5.files = [

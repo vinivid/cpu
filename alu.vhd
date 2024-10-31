@@ -4,6 +4,7 @@ use IEEE.numeric_std.all;
 
 entity alu is
     port (
+        clk : in STD_LOGIC;
         a : in STD_LOGIC_VECTOR (7 downto 0);
         b : in STD_LOGIC_VECTOR (7 downto 0);
         op : in STD_LOGIC_VECTOR (2 downto 0);
@@ -13,89 +14,68 @@ entity alu is
 end entity alu;
 
 architecture Behaviour of alu is
-    signal operation : STD_LOGIC_VECTOR (8 downto 0);
+    component adder_sub is
+        port (
+            a : in STD_LOGIC;
+            b : in STD_LOGIC;
+            cin : in STD_LOGIC;
+            a_b : in STD_LOGIC;
+            q : out STD_LOGIC;
+            cout : out STD_LOGIC
+        );
+    end component;
+
+    signal carry : STD_LOGIC_VECTOR (8 downto 0) := (others => '0');
+    signal result : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+    signal add_sub : STD_LOGIC := '0';
 begin
-    process (all)
+    --Como a instrução de subtração é em 1 podemos colocar a operação como o primeiro bit da operação ja q
+    --Ela vai ser feita de qualquer forma
+    add_sub <= op(0);
+
+    ads : for i in 0 to 7 generate
+        adsx: adder_sub
+         port map(
+            a => a(i),
+            b => b(i),
+            cin => carry(i),
+            a_b => add_sub,
+            q => result(i),
+            cout => carry(i + 1)
+        );
+    end generate;
+
+    process (clk)
     begin
-        case op is
-            when "000" =>
-                operation <= STD_LOGIC_VECTOR(signed(a) + signed(b));
-                r <= operation(7 downto 0);
-                --Checa se o numero é igual a 0;
-                if (r = "00000000") then
-                    flags(0) <= '1';
-                else
-                    flags(0) <= '0';
-                end if;
-        
-                flags(1) <= r(7);
-                flags(2) <= operation(8);
-
-                if (a(7) = b(7)) then
-                    flags(3) <= a(7) xor r(7);
-                else 
+        if (rising_edge(clk)) then
+            case op is
+                when "000" =>
+                    if (result = "00000000") then 
+                        flags(0) <= '1';
+                    else 
+                        flags(0) <= '0';
+                    end if;
+            
+                    flags(1) <= '0';
+                    flags(2) <= '0';
                     flags(3) <= '0';
-                end if; 
-            when "001" =>
-                operation <= STD_LOGIC_VECTOR(signed(a) - signed(b));
-                r <= operation(7 downto 0);
-
-                if (r = "00000000") then
-                    flags(0) <= '1';
-                else
-                    flags(0) <= '0';
-                end if;
-
-                flags(1) <= r(7);
-                flags(2) <= '0';
-                
-                if (a(7) = b(7)) then
-                    flags(3) <= a(7) xor r(7);
-                else 
+            
+                    r <= result;
+                when "001" =>
+                    if (result = "00000000") then 
+                        flags(0) <= '1';
+                    else 
+                        flags(0) <= '0';
+                    end if;
+            
+                    flags(1) <= '0';
+                    flags(2) <= '0';
                     flags(3) <= '0';
-                end if; 
-            when "010" =>
-                r <= a and b;
 
-                if (r = "00000000") then
-                    flags(0) <= '1';
-                else
-                    flags(0) <= '0';
-                end if;
-
-                flags(1) <= r(7);
-                flags(2) <= '0';
-                flags(3) <= '0';
-            when "011" =>
-                r <= a or b;
-
-                if (r = "00000000") then
-                    flags(0) <= '1';
-                else
-                    flags(0) <= '0';
-                end if;
-                
-                flags(1) <= r(7);
-                flags(2) <= '0';
-                flags(3) <= '0';
-            when "100" => 
-                r <= not a;
-
-                if (r = "00000000") then
-                    flags(0) <= '1';
-                else
-                    flags(0) <= '0';
-                end if;
-                
-                flags(1) <= r(7);
-                flags(2) <= '0';
-                flags(3) <= '0';
-            when others =>     
-                r <= "00000000";                
-                flags(1) <= '0';
-                flags(2) <= '0';
-                flags(3) <= '0';
-        end case;
+                    r <= result;
+                when others =>
+                    r <= "00000000";
+            end case;
+        end if;
     end process;    
-
 end architecture Behaviour;
