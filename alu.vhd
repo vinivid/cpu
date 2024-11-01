@@ -4,7 +4,6 @@ use IEEE.numeric_std.all;
 
 entity alu is
     port (
-        clk : in STD_LOGIC;
         a : in STD_LOGIC_VECTOR (7 downto 0);
         b : in STD_LOGIC_VECTOR (7 downto 0);
         op : in STD_LOGIC_VECTOR (2 downto 0);
@@ -53,78 +52,28 @@ begin
     a_or_b <= a or b;
     not_a <= not a;
 
-    process (clk)
-    begin
-        if (rising_edge(clk)) then
-            case op is
-                when "000" =>
-                    if (result = "00000000") then 
-                        flags(0) <= '1';
-                    else 
-                        flags(0) <= '0';
-                    end if;
-            
-                    flags(1) <= result(7);
-                    flags(2) <= carry(8);
-                    flags(3) <= carry(8) xor carry(7);
-            
-                    r <= result;
-                when "001" =>
-                    if (result = "00000000") then 
-                        flags(0) <= '1';
-                    else 
-                        flags(0) <= '0';
-                    end if;
-            
-                    flags(1) <= result(7);
-                    flags(2) <= carry(8);
-                    flags(3) <= carry(8) xor carry(7);
-
-                    r <= result;
-                when "010" =>
-                    if (a_and_b = "00000000") then 
-                        flags(0) <= '1';
-                    else 
-                        flags(0) <= '0';
-                    end if;
-            
-                    flags(1) <= a_and_b(7);
-                    flags(2) <= '0';
-                    flags(3) <= '0';
-
-                    r <= a_and_b;
-                when "011" =>
-                    if (a_or_b = "00000000") then 
-                        flags(0) <= '1';
-                    else 
-                        flags(0) <= '0';
-                    end if;
-            
-                    flags(1) <= a_or_b(7);
-                    flags(2) <= '0';
-                    flags(3) <= '0';
-
-                    r <= a_or_b;
-                when "100" =>
-                    if (not_a = "00000000") then 
-                        flags(0) <= '1';
-                    else 
-                        flags(0) <= '0';
-                    end if;
-            
-                    flags(1) <= not_a(7);
-                    flags(2) <= '0';
-                    flags(3) <= '0';
-                    
-                    r <= not_a;
-                when others =>
-                    r <= "00000000";
-
-                    flags(0) <= '0';
-                    flags(1) <= '0';
-                    flags(2) <= '0';
-                    flags(3) <= '0';
-            end case;
-        end if;
-    end process;    
+    r <= result when (op = "000" or op = "001") else 
+         a_and_b when (op = "010") else 
+         a_or_b when (op = "011") else 
+         not_a when (op = "100") else 
+         "00000000";
+    
+    flags(0) <= '1' when ( (op = "000" or op = "001") and result = "00000000") else 
+                '1' when (op = "010" and result = "00000000") else 
+                '1' when (op = "011" and result = "00000000") else 
+                '1' when (op = "100" and result = "00000000") else 
+                '0';
+    
+    flags(1) <= result(7) when (op = "000" or op = "001") else 
+                a_and_b(7) when (op = "010") else 
+                a_or_b(7) when (op = "011") else 
+                not_a(7) when (op = "100") else 
+                '0'; 
+    
+    flags(2) <= carry(8) when (op = "000" or op = "001") else
+                '0';
+    
+    flags(3) <= carry(8) xor carry(7) when (op = "000" or op = "001") else
+                '0';
+    
 end architecture Behaviour;
