@@ -1,5 +1,9 @@
 [libraries]
 
+lib7.files = [
+    'decoder.vhd'
+]
+
 lib6.files = [
     'arithmetic/adder_sub.vhd'
 ]
