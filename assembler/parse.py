@@ -1,4 +1,5 @@
 import sys
+import os
 from .dicts import *
 from typing import TextIO
 
@@ -26,11 +27,11 @@ def line_to_instruction(line : str, output_file : TextIO, program_position : int
         return True, program_position
     #Erros dados pela quantidade de palavras nas linhas
     elif len(words) == 1 and words[0] != 'WAIT':
-        print('ERRO quantidade de palavras insuficiente para se exucutar algo')
+        print('ERRO::quantidade de palavras insuficiente para se exucutar algo')
         print_error_colored(words, line_number)
         return False, program_position
     elif len(words) > 3:
-        print('ERRO quantidade excede o maximo para uma instrução')
+        print('ERRO::quantidade excede o maximo para uma instrução')
         print_error_colored(words, line_number)
         return False, program_position
     
@@ -41,14 +42,14 @@ def line_to_instruction(line : str, output_file : TextIO, program_position : int
     if words[0] in operations_dict:
         if words[0] == 'WAIT':
             if len(words) != 1:
-                print('ERRO A instrução WAIT nao deve receber nenhum argumento')
+                print('ERRO::A instrução WAIT nao deve receber nenhum argumento')
                 print_error_colored(words, line_number)
                 return False, program_position
             
             output_file.write(f'{hex(program_position).removeprefix('0x').upper()} : {operations_dict[words[0]]}0000;\n')
         elif words[0] in ('NOT', 'JMP', 'JEQ', 'JGR', 'IN', 'OUT'):
             if len(words) > 2:
-                print(f'ERRO A instrução {words[0]} não recebe mais de um argumento')
+                print(f'ERRO::A instrução {words[0]} não recebe mais de um argumento')
                 print_error_colored(words, line_number)
                 return False, program_position
             
@@ -97,7 +98,7 @@ def line_to_instruction(line : str, output_file : TextIO, program_position : int
         return True, program_position
     
     else:
-        print('ERRO primeira palavra de uma linha não instrução nem label valida\n')
+        print('ERRO::primeira palavra de uma linha não instrução nem label valida\n')
         print_error_colored(words, line_number)
         print('\n\nTalvez você tenha esquecido o \':\' da label')
         print('Talvez você não tenha feito a palavra inteira em upper case\n')
@@ -117,13 +118,17 @@ def assemble_file(input_file : TextIO, output_file : TextIO):
 
         if not error:
             return
+        
+        if program_position > ENDING_NUMBER + 1:
+            print(f'{'\033[0;31m'}ERRO::O programa escrito excede o maximo de memória de programa permitida pelo processador\n\n')
+            return
     
     if (ENDING_NUMBER - program_position) == 0:
-        output_file.write(f'{hex(255).removeprefix('0x').upper()} : 11110000;\n\n')
+        output_file.write(f'{hex(255).removeprefix('0x').upper()} : 11110000;\n')
     elif (ENDING_NUMBER - program_position) == 1:
         output_file.write(f'{hex(254).removeprefix('0x').upper()} : 11110000;\n')
-        output_file.write(f'{hex(255).removeprefix('0x').upper()} : 11110000;\n\n')
-    else:
-        output_file.write(f'[{hex(program_position).removeprefix('0x').upper()}..{hex(255).removeprefix('0x').upper()}] : 11110000;\n\n')
+        output_file.write(f'{hex(255).removeprefix('0x').upper()} : 11110000;\n')
+    elif (program_position < ENDING_NUMBER):
+        output_file.write(f'[{hex(program_position).removeprefix('0x').upper()}..{hex(255).removeprefix('0x').upper()}] : 11110000;\n')
     
-    output_file.write('END;')
+    output_file.write('\nEND;')
