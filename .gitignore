@@ -1,3 +1,5 @@
 msimtst
 .venv
 __pycache__
+*.mif
+*.asm
