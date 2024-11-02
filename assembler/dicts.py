@@ -1,3 +1,7 @@
+register_dict = {'A' : '00',
+                 'B' : '01',
+                 'R' : '10'}
+
 operations_dict = {'ADD'   : '0000',
                    'SUB'   : '0001',
                    'AND'   : '0010',

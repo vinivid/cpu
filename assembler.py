@@ -1,12 +1,14 @@
 import sys
 from assembler import parse
 
-out_file = parse.create_mif()
+if len(sys.argv) < 2:
+    print('Nenhum arquivo para gerar um mif foi passado')
+    exit()
 
-with open('{}'.format(sys.argv[1]), 'r') as file:
-    for line in file:
-        for word in line.split():
-            print('{}'.format(word))
-            out_file.write(word)
-
-out_file.close()
+if len(sys.argv) == 3:
+    with open(f'{sys.argv[1]}', 'r') as input_file:
+        with open(f'{sys.argv[2]}.mif', 'w') as output_file:
+            parse.mif_init(output_file)
+            parse.assemble_file(input_file, output_file)
+else:
+    file = open('a.mif', 'w')
