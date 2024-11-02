@@ -1,29 +1,21 @@
 [libraries]
 
-lib7.files = [
-    'decoder.vhd'
-]
-
 lib6.files = [
-    'arithmetic/adder_sub.vhd'
+    'control_unit/control_unit.vhd'
 ]
 
 lib5.files = [
-    'reg.vhd'
+    'control_unit/decoder.vhd'
 ]
 
 lib4.files = [
-    'counter.vhd' 
-]
-
-lib3.files = [
-    'ram256x8.vhd'
+    'memory/reg.vhd'
 ]
 
 lib2.files = [
-    'logic_unit.vhd'
+    'arithmetic/adder_sub.vhd'
 ]
 
 lib1.files = [
-    'alu.vhd'
+    'arithmetic/alu.vhd'
 ]

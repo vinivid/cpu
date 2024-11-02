@@ -1,0 +1,6 @@
+ADD B 21
+ADD B A 
+SUB A 13
+ADD A B 
+ADD B A 
+SUB B A 
