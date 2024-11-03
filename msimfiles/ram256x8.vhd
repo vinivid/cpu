@@ -40,7 +40,7 @@ USE ieee.std_logic_1164.all;
 LIBRARY altera_mf;
 USE altera_mf.altera_mf_components.all;
 
-ENTITY ram256x8m IS
+ENTITY ram256x8 IS
 	PORT
 	(
 		address		: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
@@ -49,10 +49,10 @@ ENTITY ram256x8m IS
 		wren		: IN STD_LOGIC ;
 		q		: OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
 	);
-END ram256x8m;
+END ram256x8;
 
 
-ARCHITECTURE SYN OF ram256x8m IS
+ARCHITECTURE SYN OF ram256x8 IS
 
 	SIGNAL sub_wire0	: STD_LOGIC_VECTOR (7 DOWNTO 0);
 
