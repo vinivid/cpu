@@ -123,7 +123,7 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
             if words[0] in ('MOV', 'ADD', 'CMP', 'SUB', 'AND', 'OR'):
                 #Se for receber um inteiro como segunda parte da instrução
                 if words[2].isdecimal():
-                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}01'
+                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}11'
                     instruction_p2 = f'{int(words[2]):08b}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
                     write_hex_instruction(hex_file, program_position, instruction_p1)
@@ -133,13 +133,9 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                 
                 #Se for receber uma reg como segunda parte da instrução
                 else:
-                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}00'
-                    instruction_p2 = f'{register_dict[words[2]]}000000'
+                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}{register_dict[words[2]]}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
                     write_hex_instruction(hex_file, program_position, instruction_p1)
-                    program_position += 1
-                    write_mif_instruction(mif_file, program_position, instruction_p2)
-                    write_hex_instruction(hex_file, program_position, instruction_p2)
 
             #São as instruções de laod e de store
             else:

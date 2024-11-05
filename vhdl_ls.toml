@@ -1,5 +1,9 @@
 [libraries]
 
+lib7.files = [
+    'control_unit/pc.vhd'
+]
+
 lib6.files = [
     'control_unit/control_unit.vhd'
 ]
