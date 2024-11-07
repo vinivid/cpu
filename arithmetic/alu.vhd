@@ -59,9 +59,9 @@ begin
          "00000000";
     
     flags(0) <= '1' when ( (op = "000" or op = "001") and result = "00000000") else 
-                '1' when (op = "010" and result = "00000000") else 
-                '1' when (op = "011" and result = "00000000") else 
-                '1' when (op = "100" and result = "00000000") else 
+                '1' when (op = "010" and a_and_b = "00000000") else 
+                '1' when (op = "011" and a_or_b = "00000000") else 
+                '1' when (op = "100" and not_a = "00000000") else 
                 '0';
     
     flags(1) <= result(7) when (op = "000" or op = "001") else 

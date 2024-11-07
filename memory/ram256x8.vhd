@@ -7,7 +7,7 @@ entity ram256x8 is
 		address	: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
 		clock : IN STD_LOGIC  := '1';
 		data : IN STD_LOGIC_VECTOR (7 DOWNTO 0);
-		wren : IN STD_LOGIC ;
+		Mwe : IN STD_LOGIC;
 		q : OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
 	);
 end ram256x8;

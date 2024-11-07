@@ -1,5 +1,13 @@
 [libraries]
 
+lib9.files = [
+    'control_unit/mux2to1.vhd'
+]
+
+lib8.files = [
+    'control_unit/mux4to1.vhd'
+]
+
 lib7.files = [
     'control_unit/pc.vhd'
 ]
