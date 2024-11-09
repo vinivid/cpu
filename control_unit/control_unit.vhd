@@ -5,6 +5,7 @@ use IEEE.numeric_std.all;
 entity control_unit is
     port (
         instruction : in STD_LOGIC_VECTOR (7 downto 0);
+        clk : in STD_LOGIC;
         control_mask : out STD_LOGIC_VECTOR (17 downto 0)
     );
 end entity control_unit;
@@ -125,5 +126,14 @@ begin
     --Só sera um valor imediato quando xB for 11 pois foi o especificado pela ISA
     imm <= '1' when xB = "11" else 
            '0';
+
+    process (clk)
+        type cpu_stages is (FETCH, DECODE_IMIDIATE, DECODE_LOAD_STORE, EXECUTE);
+        variable 
+    begin
+        if rising_edge(clk) then
+
+        end if;    
+    end process;
 
 end architecture Behaviour;
