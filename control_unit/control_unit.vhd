@@ -6,7 +6,7 @@ entity control_unit is
     port (
         instruction : in STD_LOGIC_VECTOR (7 downto 0);
         clk : in STD_LOGIC;
-        control_mask : out STD_LOGIC_VECTOR (16 downto 0)
+        control_mask : out STD_LOGIC_VECTOR (18 downto 0)
     );
 end entity control_unit;
 
@@ -27,6 +27,9 @@ architecture Behaviour of control_unit is
     constant OUTT  : STD_LOGIC_VECTOR (3 downto 0) := "1101";
     constant WAITT : STD_LOGIC_VECTOR (3 downto 0) := "1110";
 
+    --Quando uma instrução requer usar dois endereços na memomória
+    constant double_address : STD_LOGIC_VECTOR := "11";
+
     component decoder is
         port (
             instruction : in STD_LOGIC_VECTOR (7 downto 0);
@@ -38,39 +41,39 @@ architecture Behaviour of control_unit is
 
     signal op : STD_LOGIC_VECTOR (3 downto 0);
 
-    signal bitmask : STD_LOGIC_VECTOR (16 downto 0);
+    signal bitmask : STD_LOGIC_VECTOR (18 downto 0);
+
+    --É a operação a ser feita na ula, mesmo se n for uma operação de ula não trara erros pois as registradoras e outros estarão dewsabilitados
+    alias alu_select : STD_LOGIC_VECTOR is bitmask(18 downto 15);
+
     --Os e's representams se uma registradora estatra abilitada
     --Os enables tabém serão a forma de de controlar quem recebe dado ou não numa operação de mov por exemple
-    alias ePC : STD_LOGIC is bitmask(16);
-    alias eIR : STD_LOGIC is bitmask(15);
-    alias eA : STD_LOGIC is bitmask(14);
-    alias eB : STD_LOGIC is bitmask(13);
-    alias eR : STD_LOGIC is bitmask(12);
+    alias ePC : STD_LOGIC is bitmask(14);
+    alias eIR : STD_LOGIC is bitmask(13);
+    alias eA : STD_LOGIC is bitmask(12);
+    alias eB : STD_LOGIC is bitmask(11);
+    alias eR : STD_LOGIC is bitmask(10);
 
     --Enable das registradoras de flags
-    alias eF : STD_LOGIC is bitmask(11);
+    alias eF : STD_LOGIC is bitmask(9);
 
     --Memory write enable é o bit q permite a ram ser escrita naquela endereço
-    alias Mwe : STD_LOGIC is bitmask(10);
+    alias Mwe : STD_LOGIC is bitmask(8);
 
     --É um bit q significa se a memoria sera endereçada pelo program counter (0) ou pela propria memória(1)
-    alias addr : STD_LOGIC is bitmask(9);
+    alias addr : STD_LOGIC is bitmask(7);
 
     --Os i's representam se a registradora estara lendo de outra outra registradora (0) ou do input (1)
-    alias iA : STD_LOGIC is bitmask(8);
-    alias iB : STD_LOGIC is bitmask(7);
+    alias inp_reg : STD_LOGIC is bitmask(6);
+
     --O iR é um pouco diferente pois nele também se abilita ler da ula (10)
-    alias iR : STD_LOGIC_VECTOR is bitmask(6 downto 5);
+    alias iR : STD_LOGIC_VECTOR is bitmask(5 downto 4);
 
     --Sao os dois bits que representam qual registradora q deve ser selecionada em uma instrução em que xA é a operadora a a ser selecionada e
     --xB a segunda registradora (nas operaçoes que podem receber duas)
-    alias xA : STD_LOGIC_VECTOR is bitmask(4 downto 3);
-    alias xB : STD_LOGIC_VECTOR is bitmask(2 downto 1);
+    alias xA : STD_LOGIC_VECTOR is bitmask(3 downto 2);
+    alias xB : STD_LOGIC_VECTOR is bitmask(1 downto 0);
 
-    --É o bit q representa q é um immidiate e tem q ir para o próximo endereço da memoria para saber o valor a somar
-    alias imm : STD_LOGIC is bitmask(0);
-
-    --O memory read enable esta implicitamente em selecionar a xB como 11 para q ele selecione q a registradora 
     type cpu_stages is (FETCH, DECODE, EXECUTE);
     signal stage : cpu_stages := FETCH;
 begin
@@ -82,8 +85,11 @@ begin
         reg_x1 => xA,
         reg_x2 => xB
     );
+    
+    --Operação da ula a se feita
+    alu_select <= op;
 
-    ePC <= '1' when stage = FETCH else 
+    ePC <= '1' when stage = FETCH or (stage  = EXECUTE and xB = double_address)else 
            '0';
     
     eIR <= '1' when stage = FETCH else
@@ -119,22 +125,14 @@ begin
     addr <= '1' when (op = LOAD or op = STORE) else 
             '0';
     
-    --Para a iB elas só receberam input qnd for a operçao for IN se não elas sempre receberam de outra registradora
-    --TODO: colocar iA e iB para um unico sinal
-    iA <= '1' when op = INN else 
-          '0';
-    
-    iB <= '1' when op = INN else 
+    --Seleciona se a registradora recebera de um bus ou da unidade de input
+    inp_reg <= '1' when op = INN else 
           '0';
     
     --iR só recebera input quando for 01 recebera o valor da ula quando for 10 e de resto sempre recebera o valor de outra registradora
     iR <= "01" when op = INN else
           "10" when (op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT) else 
           "00"; 
-        
-    --Só sera um valor imediato quando xB for 11 pois foi o especificado pela ISA
-    imm <= '1' when xB = "11" else 
-           '0';
 
     process (clk)
     begin

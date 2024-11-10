@@ -1,7 +1,11 @@
 [libraries]
 
-lib10.files = [
+lib11.files = [
     'cpu.vhd'
+]
+
+lib10.files = [
+    'memory/reg1bit.vhd'
 ]
 
 lib9.files = [
