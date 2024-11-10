@@ -22,15 +22,29 @@ def mif_init(output_file : TextIO):
 def instruction_to_hex(instruction : str):
     return hex(int(instruction, 2)).removeprefix('0x').zfill(2).upper()
 
-def write_hex_instruction(hex_file : TextIO, program_position : int, instruction : str):
+def write_hex_instruction(hex_file : TextIO, instruction : str):
     hex_file.write(f'{instruction_to_hex(instruction)}\n')
 
 def write_mif_instruction(mif_file: TextIO, program_position : int, instruction : str):
     mif_file.write(f'{hex(program_position).removeprefix('0x').upper()} : {instruction};\n')
 
+#Remove comentarios e virgulas das palavras
+def pre_process(line : str) -> list[str]:
+    comment_remove = str
+    if (line.rfind(';') != -1):
+        comment_remove = line[0 : line.rfind(';')]
+    else:
+        comment_remove = line
+    
+    words = comment_remove.split()
+    
+    for i, word in enumerate(words):
+        words[i] = word.removesuffix(',')
+
+    return words
+
 def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, program_position : int, line_number : int):
-    words = line.split()
-    checksum = int
+    words = pre_process(line)
     #Se não tiver nada na linha pula
     if len(words) == 0:
         return True, program_position
@@ -64,7 +78,7 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
             
             instruction = f'{operations_dict[words[0]]}0000'
             write_mif_instruction(mif_file, program_position, instruction)
-            write_hex_instruction(hex_file, program_position, instruction)
+            write_hex_instruction(hex_file, instruction)
 
         #São os comando que recebem apenas um argumento
         elif words[0] in ('NOT', 'JMP', 'JEQ', 'JGR', 'IN', 'OUT'):
@@ -77,7 +91,7 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
             if words[0] in ('NOT', 'IN', 'OUT'):
                 instruction = f'{operations_dict[words[0]]}{register_dict[words[1]]}00'
                 write_mif_instruction(mif_file, program_position, instruction)
-                write_hex_instruction(hex_file, program_position, instruction)
+                write_hex_instruction(hex_file, instruction)
             
             #Instruções JMP JEQ JGR
             #Como um endereço é sempre o que se espera nessas instruções ela não recebe nenhuma flag
@@ -87,20 +101,20 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                     instruction_p1 = f'{operations_dict[words[0]]}0000'
                     instruction_p2 = f'{words[1]}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
-                    write_hex_instruction(hex_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
                     program_position += 1
                     write_mif_instruction(mif_file, program_position, instruction_p2)
-                    write_hex_instruction(hex_file, program_position, instruction_p2)
+                    write_hex_instruction(hex_file, instruction_p2)
                 
                 #Se o endereço dado for um hex
                 else:
                     instruction_p1 = f'{operations_dict[words[0]]}0000'
                     instruction_p2 = f'{int(words[1], 16):08b}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
-                    write_hex_instruction(hex_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
                     program_position += 1
                     write_mif_instruction(mif_file, program_position, instruction_p2)
-                    write_hex_instruction(hex_file, program_position, instruction_p2)
+                    write_hex_instruction(hex_file, instruction_p2)
 
         #São todos os comandos que recebem dois argumentos
         else:
@@ -111,16 +125,16 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                     instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}11'
                     instruction_p2 = f'{int(words[2]):08b}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
-                    write_hex_instruction(hex_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
                     program_position += 1
                     write_mif_instruction(mif_file, program_position, instruction_p2)
-                    write_hex_instruction(hex_file, program_position, instruction_p2)
+                    write_hex_instruction(hex_file, instruction_p2)
                 
                 #Se for receber uma reg como segunda parte da instrução
                 else:
                     instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}{register_dict[words[2]]}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
-                    write_hex_instruction(hex_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
 
             #São as instruções de laod e de store
             else:
@@ -129,20 +143,20 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                     instruction_p1 = f'{operations_dict[words[0]]}{register_dict[1]}00'
                     instruction_p2 = f'{register_dict[words[2]]}000000'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
-                    write_hex_instruction(hex_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
                     program_position += 1
                     write_mif_instruction(mif_file, program_position, instruction_p2)
-                    write_hex_instruction(hex_file, program_position, instruction_p2)
+                    write_hex_instruction(hex_file, instruction_p2)
                 
                 #O endereço dado para o load/sotre é um hex
                 else:
                     instruction_p1 = f'{operations_dict[words[0]]}{register_dict[1]}00'
                     instruction_p2 = f'{int(words[2], 16):08b}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
-                    write_hex_instruction(hex_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
                     program_position += 1
                     write_mif_instruction(mif_file, program_position, instruction_p2)
-                    write_hex_instruction(hex_file, program_position, instruction_p2)
+                    write_hex_instruction(hex_file, instruction_p2)
 
         return True, program_position
     
@@ -188,6 +202,6 @@ def assemble_file(input_file : TextIO, mif_file : TextIO, hex_file : TextIO):
     mif_file.write('\nEND;')
 
     while program_position < 256:
-        write_hex_instruction(hex_file, program_position, '11110000')
+        write_hex_instruction(hex_file, '11110000')
         program_position += 1
     

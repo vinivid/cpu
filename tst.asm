@@ -1,3 +1,4 @@
-MOV A 12
+MOV A, 12 ;este é um comentario
 MOV B 12
-ADD A B 
+ADD A B
+SUB A B
