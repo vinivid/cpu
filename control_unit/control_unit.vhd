@@ -6,7 +6,7 @@ entity control_unit is
     port (
         instruction : in STD_LOGIC_VECTOR (7 downto 0);
         clk : in STD_LOGIC;
-        control_mask : out STD_LOGIC_VECTOR (17 downto 0)
+        control_mask : out STD_LOGIC_VECTOR (16 downto 0)
     );
 end entity control_unit;
 
@@ -38,9 +38,11 @@ architecture Behaviour of control_unit is
 
     signal op : STD_LOGIC_VECTOR (3 downto 0);
 
-    signal bitmask : STD_LOGIC_VECTOR (14 downto 0);
+    signal bitmask : STD_LOGIC_VECTOR (16 downto 0);
     --Os e's representams se uma registradora estatra abilitada
     --Os enables tabém serão a forma de de controlar quem recebe dado ou não numa operação de mov por exemple
+    alias ePC : STD_LOGIC is bitmask(16);
+    alias eIR : STD_LOGIC is bitmask(15);
     alias eA : STD_LOGIC is bitmask(14);
     alias eB : STD_LOGIC is bitmask(13);
     alias eR : STD_LOGIC is bitmask(12);
@@ -58,17 +60,19 @@ architecture Behaviour of control_unit is
     alias iA : STD_LOGIC is bitmask(8);
     alias iB : STD_LOGIC is bitmask(7);
     --O iR é um pouco diferente pois nele também se abilita ler da ula (10)
-    alias iR : STD_LOGIC is bitmask(6 downto 5);
+    alias iR : STD_LOGIC_VECTOR is bitmask(6 downto 5);
 
     --Sao os dois bits que representam qual registradora q deve ser selecionada em uma instrução em que xA é a operadora a a ser selecionada e
     --xB a segunda registradora (nas operaçoes que podem receber duas)
-    alias xA : STD_LOGIC is bitmask(4 downto 3);
-    alias xB : STD_LOGIC is bitmask(2 downto 1);
+    alias xA : STD_LOGIC_VECTOR is bitmask(4 downto 3);
+    alias xB : STD_LOGIC_VECTOR is bitmask(2 downto 1);
 
     --É o bit q representa q é um immidiate e tem q ir para o próximo endereço da memoria para saber o valor a somar
     alias imm : STD_LOGIC is bitmask(0);
 
     --O memory read enable esta implicitamente em selecionar a xB como 11 para q ele selecione q a registradora 
+    type cpu_stages is (FETCH, DECODE, EXECUTE);
+    signal stage : cpu_stages := FETCH;
 begin
     
     decoder_inst: decoder
@@ -78,7 +82,12 @@ begin
         reg_x1 => xA,
         reg_x2 => xB
     );
+
+    ePC <= '1' when stage = FETCH else 
+           '0';
     
+    eIR <= '1' when stage = FETCH else
+           '0';
     --Em qualquer uma das operações da linha 1 (começando do when ) abaixo dessa não sera necessario abilitar a registradora pois ela não vai receber nada
     --A segunda linha representa as operações em que a registradora recebe algo LOAD STORE MOV IN
     --A terceira é o default
@@ -128,12 +137,19 @@ begin
            '0';
 
     process (clk)
-        type cpu_stages is (FETCH, DECODE_IMIDIATE, DECODE_LOAD_STORE, EXECUTE);
-        variable 
     begin
         if rising_edge(clk) then
-
+            case stage is
+                when FETCH =>
+                    stage <= DECODE;
+                when DECODE =>
+                    stage <= EXECUTE;
+                when EXECUTE =>
+                    stage <= FETCH;
+            end case;
         end if;    
     end process;
+
+    control_mask <= bitmask;
 
 end architecture Behaviour;

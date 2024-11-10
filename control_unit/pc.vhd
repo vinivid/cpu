@@ -14,7 +14,7 @@ entity pc is
 end entity pc;
 
 architecture Behaviour of pc is
-    signal count_buffer : STD_LOGIC_VECTOR(7 downto 0);
+    signal count_buffer : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
 begin
 
     process (clk)

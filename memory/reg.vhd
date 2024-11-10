@@ -4,7 +4,7 @@ use IEEE.numeric_std.all;
 
 entity reg is
     generic (
-        number_of_bits : INTEGER := 4
+        number_of_bits : INTEGER := 8
     );
     port (
         clk : in STD_LOGIC;

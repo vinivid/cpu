@@ -19,26 +19,11 @@ def mif_init(output_file : TextIO):
     output_file.write('DATA_RADIX = BIN;\n')
     output_file.write('CONTENT\nBEGIN\n\n')
 
-def bitwise_not(n : int):
-    return n ^ ((1 << 8) - 1)
-
-def checksum(program_position : int, instruction : str) -> str:
-    sum_of_values = 1 + program_position + int(instruction, 2)
-    #Complemento de dois da soma dos valores da representação em hex
-    checksum = bitwise_not(sum_of_values) + 1
-    checksum_hex = hex(checksum).removeprefix('0x').zfill(2).upper()
-    if len(checksum_hex) == 3:
-        checksum_hex = checksum_hex[1:3]
-    return checksum_hex
-
-def pos_to_hex(program_position : int) -> str:
-    return hex(program_position).removeprefix('0x').zfill(4).upper()
-
 def instruction_to_hex(instruction : str):
     return hex(int(instruction, 2)).removeprefix('0x').zfill(2).upper()
 
 def write_hex_instruction(hex_file : TextIO, program_position : int, instruction : str):
-    hex_file.write(f':01{pos_to_hex(program_position)}00{instruction_to_hex(instruction)}{checksum(program_position, instruction)}\n')
+    hex_file.write(f'{instruction_to_hex(instruction)}\n')
 
 def write_mif_instruction(mif_file: TextIO, program_position : int, instruction : str):
     mif_file.write(f'{hex(program_position).removeprefix('0x').upper()} : {instruction};\n')
@@ -206,5 +191,3 @@ def assemble_file(input_file : TextIO, mif_file : TextIO, hex_file : TextIO):
         write_hex_instruction(hex_file, program_position, '11110000')
         program_position += 1
     
-    #Escrevendo EOF
-    hex_file.write(':00000001FF\n')

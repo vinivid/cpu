@@ -2,3 +2,5 @@ msimtst
 .venv
 __pycache__
 msim
+*.hex
+*.mif
