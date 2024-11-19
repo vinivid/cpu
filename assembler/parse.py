@@ -105,6 +105,16 @@ def put_all_labels(line : str, program_position : int, line_number : int):
         return True, program_position
     
     elif words[0].endswith(':'):
+        label = words[0].removesuffix(':')
+
+        if label.isdecimal():
+            print('Uma label não pode ter como nome um número')
+            print_error_colored(line, line_number)
+        
+        if label == 'A' or label == 'B' or label == 'R':
+            print('As letras A B e R são reservadas para as registras, labels dessa forma são ilegais')
+            print_error_colored(line, line_number)
+        
         label_dict.update({words[0].removesuffix(':') : (program_position)})
         #Remove 1 na posição do programa pois a label n é suposta estar em nenhum lugar, como lógo após ele sair dessa função ele vai 
         #Adicionar 1 no a posição do programa não muda
@@ -166,8 +176,8 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
             #Como um endereço é sempre o que se espera nessas instruções ela não recebe nenhuma flag
             else:
                 #Se o endereço dado for um binario
-                if words[1].isdecimal():
-                    instruction_p1 = f'{operations_dict[words[0]]}0000'
+                if is_binary_string(words[1]):
+                    instruction_p1 = f'{operations_dict[words[0]]}0011'
                     instruction_p2 = f'{words[1]}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
                     write_hex_instruction(hex_file, instruction_p1)
@@ -175,9 +185,18 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                     write_mif_instruction(mif_file, program_position, instruction_p2)
                     write_hex_instruction(hex_file, instruction_p2)
                 
+                elif words[1].isdecimal():
+                    instruction_p1 = f'{operations_dict[words[0]]}0011'
+                    instruction_p2 = f'{int(words[1], 10):08b}'
+                    write_mif_instruction(mif_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
+                    program_position += 1
+                    write_mif_instruction(mif_file, program_position, instruction_p2)
+                    write_hex_instruction(hex_file, instruction_p2)
+
                 #Se o endereço dado for um hex
                 elif words[1][0 : 2] == '0x':
-                    instruction_p1 = f'{operations_dict[words[0]]}0000'
+                    instruction_p1 = f'{operations_dict[words[0]]}0011'
                     instruction_p2 = f'{int(words[1], 16):08b}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
                     write_hex_instruction(hex_file, instruction_p1)
@@ -185,15 +204,21 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                     write_mif_instruction(mif_file, program_position, instruction_p2)
                     write_hex_instruction(hex_file, instruction_p2)
 
-                #Se o endereço dado for uma label
+                #Se o endereço dado for uma label ou uma REG
                 else: 
-                    instruction_p1 = f'{operations_dict[words[0]]}0000'
-                    instruction_p2 = f'{label_dict[words[1]]:08b}'
-                    write_mif_instruction(mif_file, program_position, instruction_p1)
-                    write_hex_instruction(hex_file, instruction_p1)
-                    program_position += 1
-                    write_mif_instruction(mif_file, program_position, instruction_p2)
-                    write_hex_instruction(hex_file, instruction_p2)
+                    if not words[1] in label_dict:
+                        instruction_p1 = f'{operations_dict[words[0]]}00{register_dict[words[1]]}'
+                        write_mif_instruction(mif_file, program_position, instruction_p1)
+                        write_hex_instruction(hex_file, instruction_p1)
+                        
+                    else:
+                        instruction_p1 = f'{operations_dict[words[0]]}0011'
+                        instruction_p2 = f'{label_dict[words[1]]:08b}'
+                        write_mif_instruction(mif_file, program_position, instruction_p1)
+                        write_hex_instruction(hex_file, instruction_p1)
+                        program_position += 1
+                        write_mif_instruction(mif_file, program_position, instruction_p2)
+                        write_hex_instruction(hex_file, instruction_p2)
 
         #São todos os comandos que recebem dois argumentos
         else:

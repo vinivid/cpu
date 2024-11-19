@@ -36,6 +36,17 @@ architecture Behaviour of cpu is
         );
     end component;
 
+    component mux4to1b is
+        port (
+            selector : in STD_LOGIC_VECTOR (1 downto 0);
+            a : in STD_LOGIC;
+            b : in STD_LOGIC;
+            c : in STD_LOGIC;
+            d : in STD_LOGIC;
+            mux_out : out STD_LOGIC
+        );
+    end component;
+
     component reg is
         generic (
             number_of_bits : INTEGER := 8
@@ -53,7 +64,7 @@ architecture Behaviour of cpu is
         port (
             instruction : in STD_LOGIC_VECTOR (7 downto 0);
             clk : in STD_LOGIC;
-            control_mask : out STD_LOGIC_VECTOR (17 downto 0)
+            control_mask : out STD_LOGIC_VECTOR (20 downto 0)
         );
     end component;
 
@@ -139,22 +150,38 @@ architecture Behaviour of cpu is
     signal CARRY_flag_out : STD_LOGIC;
     signal OVERFLOW_flag_out : STD_LOGIC;
 
+    signal jmp_enable : STD_LOGIC;
+    signal jmp_addres : STD_LOGIC_VECTOR(7 downto 0);
+
+    --Valor da registradora feita para receber o imediato de forma a não se ter erros na operação de load um jump
+    signal IMM_val : STD_LOGIC_VECTOR (7 downto 0);
+
     ---------------------------------------------------------------------
     -----------------BARRAMENTOS DA UNIDADE DE CONTROLE------------------
     ---------------------------------------------------------------------
     --O barramento de controle abilita e seleciona as registradoras e ula dependendo da instrução com base na bitmask feita na unidade de controle
-    signal bitmask : STD_LOGIC_VECTOR (17 downto 0);
+    signal bitmask : STD_LOGIC_VECTOR (20 downto 0);
+    
+    --Select jmp enable é o que seleciona qual fator o jmp enable recebera para abilitar
+    --00 é disabled
+    --01 é jump incondicional
+    --10 é jump se for igual
+    --11 é jump se for maior
+    alias select_jmp_enbale : STD_LOGIC_VECTOR is bitmask(20 downto 19);
 
     --É a operação a ser feita na ula, mesmo se n for uma operação de ula não trara erros pois as registradoras e outros estarão dewsabilitados
-    alias alu_select : STD_LOGIC_VECTOR is bitmask(17 downto 15);
+    alias alu_select : STD_LOGIC_VECTOR is bitmask(18 downto 16);
 
     --Os e's representams se uma registradora estatra abilitada
     --Os enables tabém serão a forma de de controlar quem recebe dado ou não numa operação de mov por exemple
-    alias ePC : STD_LOGIC is bitmask(14);
-    alias eIR : STD_LOGIC is bitmask(13);
-    alias eA : STD_LOGIC is bitmask(12);
-    alias eB : STD_LOGIC is bitmask(11);
-    alias eR : STD_LOGIC is bitmask(10);
+    alias ePC : STD_LOGIC is bitmask(15);
+    alias eIR : STD_LOGIC is bitmask(14);
+    alias eA : STD_LOGIC is bitmask(13);
+    alias eB : STD_LOGIC is bitmask(12);
+    alias eR : STD_LOGIC is bitmask(11);
+
+    --Enable imediato abilita a registradora que esta conectada na memória que guarda o seu valor
+    alias eImm : STD_LOGIC is bitmask(10);
 
     --Enable das registradoras de flags
     alias eF : STD_LOGIC is bitmask(9);
@@ -188,13 +215,42 @@ begin
         control_mask => bitmask
     );
 
+    ---------------------------------------------------------------------
+    -----------------PROGRAM COUNTER-------------------------------------
+    ---------------------------------------------------------------------
+
+    --Mux que seleciona se tera jump enable ou não
+    jmp_selct: mux4to1b
+     port map(
+        selector => select_jmp_enbale,
+        a => '0',
+        b => '1',
+        c => ZERO_flag_out,
+        d => SIGN_flag_out,
+        mux_out => jmp_enable
+    );
+
+    --Seleciona de onde sera lido o addres para da o jump
+    adrres_from_where: mux4to1
+     generic map(
+        in_out_size => 8
+    )
+     port map(
+        selector => xB,
+        a => A_val,
+        b => B_val,
+        c => R_val,
+        d => IMM_val,
+        mux_out => jmp_addres
+    );
+
     program_counter: pc
      port map(
         clk => clk,
         enable => ePC,
         reset => reset,
-        jump_enable => '0',
-        jump_addres => MEM_val,
+        jump_enable => jmp_enable,
+        jump_addres => jmp_addres,
         adrres_out => pc_address
     );
     
@@ -373,6 +429,19 @@ begin
     ---------------------------Memória-----------------------------------
     ---------------------------------------------------------------------
     
+    --Registradora que salva o valor do imediato para que não se tenham problemas no load e jmp
+    reg_inst: reg
+     generic map(
+        number_of_bits => 8
+    )
+     port map(
+        clk => clk,
+        enable => eImm,
+        reset => reset,
+        d => MEM_val,
+        q => IMM_val
+    );
+
     --É importante notar que a RAM utilizada para o quartus é diferente pois para
     --Inicializar no modelsim é necessario de uma função que não tem no IP do quartus
     ram256x8_main: ram256x8

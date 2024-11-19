@@ -1,7 +1,11 @@
 [libraries]
 
-lib12.files = [
+lib13.files = [
     'cpu.vhd'
+]
+
+lib12.files = [
+    'control_unit/mux4to1b.vhd'
 ]
 
 lib11.files = [

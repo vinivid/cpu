@@ -6,7 +6,7 @@ entity control_unit is
     port (
         instruction : in STD_LOGIC_VECTOR (7 downto 0);
         clk : in STD_LOGIC;
-        control_mask : out STD_LOGIC_VECTOR (17 downto 0)
+        control_mask : out STD_LOGIC_VECTOR (20 downto 0)
     );
 end entity control_unit;
 
@@ -41,18 +41,28 @@ architecture Behaviour of control_unit is
 
     signal op : STD_LOGIC_VECTOR (3 downto 0);
 
-    signal bitmask : STD_LOGIC_VECTOR (17 downto 0);
+    signal bitmask : STD_LOGIC_VECTOR (20 downto 0);
+    
+    --Select jmp enable é o que seleciona qual fator o jmp enable recebera para abilitar
+    --00 é disabled
+    --01 é jump incondicional
+    --10 é jump se for igual
+    --11 é jump se for maior
+    alias select_jmp_enbale : STD_LOGIC_VECTOR is bitmask(20 downto 19);
 
     --É a operação a ser feita na ula, mesmo se n for uma operação de ula não trara erros pois as registradoras e outros estarão dewsabilitados
-    alias alu_select : STD_LOGIC_VECTOR is bitmask(17 downto 15);
+    alias alu_select : STD_LOGIC_VECTOR is bitmask(18 downto 16);
 
     --Os e's representams se uma registradora estatra abilitada
     --Os enables tabém serão a forma de de controlar quem recebe dado ou não numa operação de mov por exemple
-    alias ePC : STD_LOGIC is bitmask(14);
-    alias eIR : STD_LOGIC is bitmask(13);
-    alias eA : STD_LOGIC is bitmask(12);
-    alias eB : STD_LOGIC is bitmask(11);
-    alias eR : STD_LOGIC is bitmask(10);
+    alias ePC : STD_LOGIC is bitmask(15);
+    alias eIR : STD_LOGIC is bitmask(14);
+    alias eA : STD_LOGIC is bitmask(13);
+    alias eB : STD_LOGIC is bitmask(12);
+    alias eR : STD_LOGIC is bitmask(11);
+
+    --Enable imediato abilita a registradora que esta conectada na memória que guarda o seu valor
+    alias eImm : STD_LOGIC is bitmask(10);
 
     --Enable das registradoras de flags
     alias eF : STD_LOGIC is bitmask(9);
@@ -86,15 +96,21 @@ begin
         reg_x2 => xB
     );
     
+    --Assinala para cada um dos valores do jmp enable qual vai ser a flag que fara com que ele receba
+    select_jmp_enbale <= "01" when op = JMP else 
+                         "10" when op = JEQ else 
+                         "11" when op = JGR else 
+                         "00";
+
     --Operação da ula a se feita
-    alu_select <= "000" when op = CMP else 
+    alu_select <= "001" when op = CMP else 
                    op(2 downto 0);
 
     ePC <= '1' when stage = FETCH or (stage  = EXECUTE and xB = double_address)else 
            '0';
     
     eIR <= '1' when stage = FETCH else
-           '1' when stage = EXECUTE and xB = "11" else 
+           '1' when stage = EXECUTE and xB = double_address else 
            '0';
     --Em qualquer uma das operações da linha 1 (começando do when ) abaixo dessa não sera necessario abilitar a registradora pois ela não vai receber nada
     --A segunda linha representa as operações em que a registradora recebe algo LOAD STORE MOV IN
@@ -115,15 +131,20 @@ begin
           '1' when (op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT) and (stage = DECODE or stage = EXECUTE) else
           '1' when xA = "10" and (stage = DECODE or stage = EXECUTE) else 
           '0';
+    
+    --Abilita a registradora do imediato receber somente se tiver um valor imediato e tiver durante o stagio de decode
+    eImm <= '1' when xB = "11" and (stage = DECODE) else 
+            '0';
 
     --As registradoras de flag só estarão ativadas quando for uma operação de ula ou uma operação de comparação
     eF <= '1' when (op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT or op = CMP) and (stage = DECODE or stage = EXECUTE) else 
           '0';    
     
     --Só se escrevera numa posição da memória quando for load
-    Mwe <= '1' when op = LOAD else 
+    Mwe <= '1' when op = STORE else 
            '0'; 
-    
+
+    --É um bit q significa se a memoria sera endereçada pelo program counter (0) ou pela propria memória(1)
     addr <= '1' when (op = LOAD or op = STORE) else 
             '0';
     
