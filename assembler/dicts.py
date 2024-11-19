@@ -17,3 +17,5 @@ operations_dict = {'ADD'   : '0000',
                    'IN'    : '1100',
                    'OUT'   : '1101',
                    'WAIT'  : '1110'}
+
+label_dict = {}

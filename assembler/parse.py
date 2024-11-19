@@ -3,6 +3,14 @@ import os
 from .dicts import *
 from typing import TextIO
 
+#Checa se a string passada representa um número em binario
+def is_binary_string(string : str) -> bool:
+    for char in string:
+        if char != '0' or char != '1':
+            return False
+    
+    return True
+
 def print_error_colored(line_words : list, line_number: int):
     print(f'{sys.argv[1]} na linha {line_number}')
     print(f'{'\033[0;31m'}{line_words[0]}', end=' ')
@@ -43,13 +51,74 @@ def pre_process(line : str) -> list[str]:
 
     return words
 
+#É a coisa mais inieficiente do mundo, mas é a forma mais facil e rapida de implemetar q eu achei de colocar as labels q ainda n foram nomeadas
+def put_all_labels(line : str, program_position : int, line_number : int):
+    words = pre_process(line)
+    #Se não tiver nada na linha pula
+    if len(words) == 0:
+        return True, program_position
+    #Erros dados pela quantidade de palavras nas linhas
+    elif len(words) == 1 and (not words[0].endswith(':') and words[0] != 'WAIT'):
+        print('ERRO::quantidade de palavras insuficiente para se exucutar algo')
+        print_error_colored(words, line_number)
+        return False, program_position
+    elif len(words) > 3:
+        print('ERRO::quantidade excede o maximo para uma instrução')
+        print_error_colored(words, line_number)
+        return False, program_position
+
+    if words[0] in operations_dict:
+        #Caso especial para o wait que recebe nenhum argumento
+        if words[0] == 'WAIT':
+            if len(words) != 1:
+                print('ERRO::A instrução WAIT nao deve receber nenhum argumento')
+                print_error_colored(words, line_number)
+                return False, program_position
+
+            program_position += 0
+            
+        #São os comando que recebem apenas um argumento
+        elif words[0] in ('NOT', 'JMP', 'JEQ', 'JGR', 'IN', 'OUT'):
+            if len(words) > 2:
+                print(f'ERRO::A instrução {words[0]} não recebe mais de um argumento')
+                print_error_colored(words, line_number)
+                return False, program_position
+            
+            #Pode receber apenas uma registradora
+            if words[0] in ('NOT', 'IN', 'OUT'):
+                program_position += 0
+            #Instruções JMP JEQ JGR
+            else:
+                program_position += 1
+        #São todos os comandos que recebem dois argumentos
+        else:
+            if words[0] in ('MOV', 'ADD', 'CMP', 'SUB', 'AND', 'OR'):
+                if words[2].isdecimal():
+                    program_position += 1                    
+                else:
+                    program_position += 0
+            #Load e store
+            else:
+                
+                program_position += 1
+
+        return True, program_position
+    
+    elif words[0].endswith(':'):
+        label_dict.update({words[0].removesuffix(':') : (program_position)})
+        #Remove 1 na posição do programa pois a label n é suposta estar em nenhum lugar, como lógo após ele sair dessa função ele vai 
+        #Adicionar 1 no a posição do programa não muda
+        program_position -= 1
+        return True, program_position
+
+
 def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, program_position : int, line_number : int):
     words = pre_process(line)
     #Se não tiver nada na linha pula
     if len(words) == 0:
         return True, program_position
     #Erros dados pela quantidade de palavras nas linhas
-    elif len(words) == 1 and words[0] != 'WAIT':
+    elif len(words) == 1 and (not words[0].endswith(':') and words[0] != 'WAIT'):
         print('ERRO::quantidade de palavras insuficiente para se exucutar algo')
         print_error_colored(words, line_number)
         return False, program_position
@@ -107,9 +176,19 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                     write_hex_instruction(hex_file, instruction_p2)
                 
                 #Se o endereço dado for um hex
-                else:
+                elif words[1][0 : 2] == '0x':
                     instruction_p1 = f'{operations_dict[words[0]]}0000'
                     instruction_p2 = f'{int(words[1], 16):08b}'
+                    write_mif_instruction(mif_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
+                    program_position += 1
+                    write_mif_instruction(mif_file, program_position, instruction_p2)
+                    write_hex_instruction(hex_file, instruction_p2)
+
+                #Se o endereço dado for uma label
+                else: 
+                    instruction_p1 = f'{operations_dict[words[0]]}0000'
+                    instruction_p2 = f'{label_dict[words[1]]:08b}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
                     write_hex_instruction(hex_file, instruction_p1)
                     program_position += 1
@@ -139,9 +218,18 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
             #São as instruções de laod e de store
             else:
                 #O endereço dado para o load/sotre é um binario
-                if words[1].isdecimal():
-                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[1]}00'
-                    instruction_p2 = f'{register_dict[words[2]]}000000'
+                if is_binary_string(words[2]):
+                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}11'
+                    instruction_p2 = f'{words[2]}'
+                    write_mif_instruction(mif_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
+                    program_position += 1
+                    write_mif_instruction(mif_file, program_position, instruction_p2)
+                    write_hex_instruction(hex_file, instruction_p2)
+
+                elif words[2].isdecimal():
+                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}11'
+                    instruction_p2 = f'{int(words[2], 10):08b}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
                     write_hex_instruction(hex_file, instruction_p1)
                     program_position += 1
@@ -150,7 +238,7 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                 
                 #O endereço dado para o load/sotre é um hex
                 else:
-                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[1]}00'
+                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}11'
                     instruction_p2 = f'{int(words[2], 16):08b}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
                     write_hex_instruction(hex_file, instruction_p1)
@@ -160,8 +248,9 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
 
         return True, program_position
     
+    #Não faz nada pq ja calculamos todas as labels anteriormente
     elif words[0].endswith(':'):
-        #TODO: Adicionar labels
+        program_position -= 1
         return True, program_position
     
     else:
@@ -174,6 +263,24 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
 
 def assemble_file(input_file : TextIO, mif_file : TextIO, hex_file : TextIO):
     ENDING_NUMBER = 255
+
+    #Para encontrar as labels
+    pre_program_pos = 0
+    pre_line_pos = 0
+
+    with open(input_file.name, 'r') as probe_file:
+        for line in probe_file:
+            error, pre_program_pos = put_all_labels(line, pre_program_pos, pre_line_pos)
+        
+            pre_line_pos += 1
+            pre_program_pos += 1
+
+            if not error:
+                return
+            
+            if pre_program_pos > ENDING_NUMBER + 1:
+                print(f'{'\033[0;31m'}ERRO::O programa escrito excede o maximo de memória de programa permitida pelo processador\n\n')
+                return
 
     program_position = 0
     line_number = 1
