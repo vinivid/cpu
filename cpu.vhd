@@ -5,7 +5,10 @@ use IEEE.numeric_std.all;
 entity cpu is
     port (
         clk : IN STD_LOGIC;
-        reset : IN STD_LOGIC       
+        confirm_button : IN STD_LOGIC;
+        INPUT_val : IN STD_LOGIC_VECTOR (7 downto 0); --Em essencia o sinal da unidade de input
+        reset : IN STD_LOGIC;
+        data_out : OUT STD_LOGIC_VECTOR (7 downto 0)
     );
 end entity cpu;
 
@@ -64,7 +67,8 @@ architecture Behaviour of cpu is
         port (
             instruction : in STD_LOGIC_VECTOR (7 downto 0);
             clk : in STD_LOGIC;
-            control_mask : out STD_LOGIC_VECTOR (20 downto 0)
+            break_loop : in STD_LOGIC;
+            control_mask : out STD_LOGIC_VECTOR (21 downto 0)
         );
     end component;
 
@@ -99,6 +103,16 @@ architecture Behaviour of cpu is
         );
     end component;
 
+    component output_unit is
+        port (
+            output_enable : in STD_LOGIC;
+            clk : in STD_LOGIC;
+            reset : in STD_LOGIC;
+            data_to_output : in STD_LOGIC_VECTOR (7 downto 0);
+            data_output : OUT STD_LOGIC_VECTOR (7 downto 0)
+        );
+    end component;
+
     component reg1bit is
         port (
             clk : in STD_LOGIC;
@@ -121,9 +135,6 @@ architecture Behaviour of cpu is
     --É o barramento do valor que sai da memória
     signal MEM_val : STD_LOGIC_VECTOR(7 downto 0);
 
-    --Sinal da unidade de input
-    signal INPUT_val : STD_LOGIC_VECTOR(7 downto 0);
-
     --Os seguintes são os valores intermediarios do MUX de seleção de cada componente
     signal A_mux_data_select : STD_LOGIC_VECTOR(7 downto 0);
     signal A_mux_data_or_input : STD_LOGIC_VECTOR(7 downto 0);
@@ -132,6 +143,9 @@ architecture Behaviour of cpu is
     signal R_mux_data_select : STD_LOGIC_VECTOR(7 downto 0);
     --A registradora R possui além de ser input ou data também tem opção da ula
     signal R_mux_dat_inp_ula : STD_LOGIC_VECTOR(7 downto 0);
+
+    --Sinal intermediaro do valor selecionado pelo mux da output unit
+    signal OUT_mux_dat_inp : STD_LOGIC_VECTOR(7 downto 0);
 
     --Esses sinais são os inputs da ULA depois de serem selecionados pelo mux
     signal ALU_input_a : STD_LOGIC_VECTOR(7 downto 0);
@@ -157,6 +171,17 @@ architecture Behaviour of cpu is
     --que o da direita e portanto tem que ativar o JGR
     signal not_sign_flag : STD_LOGIC;
 
+    --É o valor de saida após o mux de endereço selecionar se a memória sera endereça pelo program counter
+    --ou um valor da memório ou registradora
+    signal ADDR_mux_inp_mem : STD_LOGIC_VECTOR(7 downto 0);
+
+    --Valor intermediario de selecionar qual dado vai ser usado quando a memória não esta sendo
+    --endereçada pelo program counter
+    signal NPC_mux_inp_mem : STD_LOGIC_VECTOR(7 downto 0);
+
+    --É o valor de saida aós o mux de data selecionar um valor
+    signal DATA_mux_inp_mem : STD_LOGIC_VECTOR(7 downto 0);
+
     --Valor da registradora feita para receber o imediato de forma a não se ter erros na operação de load um jump
     signal IMM_val : STD_LOGIC_VECTOR (7 downto 0);
 
@@ -164,31 +189,34 @@ architecture Behaviour of cpu is
     -----------------BARRAMENTOS DA UNIDADE DE CONTROLE------------------
     ---------------------------------------------------------------------
     --O barramento de controle abilita e seleciona as registradoras e ula dependendo da instrução com base na bitmask feita na unidade de controle
-    signal bitmask : STD_LOGIC_VECTOR (20 downto 0);
+    signal bitmask : STD_LOGIC_VECTOR (21 downto 0);
     
     --Select jmp enable é o que seleciona qual fator o jmp enable recebera para abilitar
     --00 é disabled
     --01 é jump incondicional
     --10 é jump se for igual
     --11 é jump se for maior
-    alias select_jmp_enbale : STD_LOGIC_VECTOR is bitmask(20 downto 19);
+    alias select_jmp_enbale : STD_LOGIC_VECTOR is bitmask(21 downto 20);
 
     --É a operação a ser feita na ula, mesmo se n for uma operação de ula não trara erros pois as registradoras e outros estarão dewsabilitados
-    alias alu_select : STD_LOGIC_VECTOR is bitmask(18 downto 16);
+    alias alu_select : STD_LOGIC_VECTOR is bitmask(19 downto 17);
 
     --Os e's representams se uma registradora estatra abilitada
     --Os enables tabém serão a forma de de controlar quem recebe dado ou não numa operação de mov por exemple
-    alias ePC : STD_LOGIC is bitmask(15);
-    alias eIR : STD_LOGIC is bitmask(14);
-    alias eA : STD_LOGIC is bitmask(13);
-    alias eB : STD_LOGIC is bitmask(12);
-    alias eR : STD_LOGIC is bitmask(11);
+    alias ePC : STD_LOGIC is bitmask(16);
+    alias eIR : STD_LOGIC is bitmask(15);
+    alias eA : STD_LOGIC is bitmask(14);
+    alias eB : STD_LOGIC is bitmask(13);
+    alias eR : STD_LOGIC is bitmask(12);
 
     --Enable imediato abilita a registradora que esta conectada na memória que guarda o seu valor
-    alias eImm : STD_LOGIC is bitmask(10);
+    alias eImm : STD_LOGIC is bitmask(11);
 
     --Enable das registradoras de flags
-    alias eF : STD_LOGIC is bitmask(9);
+    alias eF : STD_LOGIC is bitmask(10);
+
+    --Abilita a unidade de output
+    alias eOut : STD_LOGIC is bitmask(9);
 
     --Memory write enable é o bit q permite a ram ser escrita naquela endereço
     alias Mwe : STD_LOGIC is bitmask(8);
@@ -216,6 +244,7 @@ begin
      port map(
         instruction => IR_val,
         clk => clk,
+        break_loop => confirm_button,
         control_mask => bitmask
     );
 
@@ -447,15 +476,55 @@ begin
         d => MEM_val,
         q => IMM_val
     );
+    
+    --Mux que seleciona qual endereço alternativo ao program counter para usar
+    addres_no_pc: mux4to1
+     generic map(
+        in_out_size => 8
+    )
+     port map(
+        selector => xB,
+        a => A_val,
+        b => B_val,
+        c => R_val,
+        d => IMM_val,
+        mux_out => NPC_mux_inp_mem
+    );
+
+    --Mux que seleciona se a memoria sera enderaçada pelo program counter ou por outra fonte
+    pc_or_other: mux2to1
+     generic map(
+        in_out_size => 8
+    )
+     port map(
+        selector => addr,
+        a => pc_address,
+        b => NPC_mux_inp_mem,
+        mux_out => ADDR_mux_inp_mem
+    );
+
+    --Seleciocina qual sera o data input
+    write_data_select: mux4to1
+     generic map(
+        in_out_size => 8
+    )
+     port map(
+        selector => xA,
+        a => A_val,
+        b => B_val,
+        c => R_val,
+        d => IMM_val,
+        mux_out => DATA_mux_inp_mem
+    );
 
     --É importante notar que a RAM utilizada para o quartus é diferente pois para
     --Inicializar no modelsim é necessario de uma função que não tem no IP do quartus
     ram256x8_main: ram256x8
     port map(
-       address => pc_address,
+       address => ADDR_mux_inp_mem,
        clk => clk,
-       data => "00000000",
-       Mwe => '0',
+       data => DATA_mux_inp_mem,
+       Mwe => Mwe,
        q => MEM_val
     );
 
@@ -499,4 +568,31 @@ begin
         flags => ALU_flag_out
     );
     
+    ---------------------------------------------------------------------
+    ---------------------------UNIDADE DE OUTPUT-------------------------
+    ---------------------------------------------------------------------
+    
+    --A unica diferença da unidade de output para uma registradora é que a unidade
+    --de output é inicializada com 0 e de que o input dela é controla por xA e não por xB
+    data_to_output_select: mux4to1
+     generic map(
+        in_out_size => 8
+    )
+     port map(
+        selector => xA,
+        a => A_val,
+        b => B_val,
+        c => R_val,
+        d => MEM_val,
+        mux_out => OUT_mux_dat_inp
+    );
+
+    output_unit_main: output_unit
+     port map(
+        output_enable => eOut,
+        clk => clk,
+        reset => reset,
+        data_to_output => OUT_mux_dat_inp,
+        data_output => data_out
+    );
 end architecture Behaviour;

@@ -252,6 +252,7 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                     write_mif_instruction(mif_file, program_position, instruction_p2)
                     write_hex_instruction(hex_file, instruction_p2)
 
+                #O endereço dado é um número
                 elif words[2].isdecimal():
                     instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}11'
                     instruction_p2 = f'{int(words[2], 10):08b}'
@@ -261,8 +262,8 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                     write_mif_instruction(mif_file, program_position, instruction_p2)
                     write_hex_instruction(hex_file, instruction_p2)
                 
-                #O endereço dado para o load/sotre é um hex
-                else:
+                #O endereço dado é um hex
+                elif words[2][0 : 2] == '0x':
                     instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}11'
                     instruction_p2 = f'{int(words[2], 16):08b}'
                     write_mif_instruction(mif_file, program_position, instruction_p1)
@@ -270,6 +271,12 @@ def line_to_instruction(line : str, mif_file : TextIO, hex_file : TextIO, progra
                     program_position += 1
                     write_mif_instruction(mif_file, program_position, instruction_p2)
                     write_hex_instruction(hex_file, instruction_p2)
+                
+                #O endereço dado esta armazenado numa reg
+                else:
+                    instruction_p1 = f'{operations_dict[words[0]]}{register_dict[words[1]]}{register_dict[words[2]]}'
+                    write_mif_instruction(mif_file, program_position, instruction_p1)
+                    write_hex_instruction(hex_file, instruction_p1)
 
         return True, program_position
     

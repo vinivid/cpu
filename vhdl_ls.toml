@@ -1,7 +1,11 @@
 [libraries]
 
-lib13.files = [
+lib14.files = [
     'cpu.vhd'
+]
+
+lib15.files = [
+    'control_unit/output_unit.vhd'
 ]
 
 lib12.files = [
