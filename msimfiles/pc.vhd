@@ -17,15 +17,15 @@ architecture Behaviour of pc is
     signal count_buffer : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
 begin
 
+    --Não é necessario que o program counter esteja abilitado para que ele de um jump
+    --Isso facilita mais na unidade de controle
     process (clk)
     begin
         if rising_edge(clk) then
-            if enable = '1'  then
-                if jump_enable = '1' then 
-                    count_buffer <= jump_addres;
-                else
-                    count_buffer <= std_logic_vector(unsigned(count_buffer) + 1);
-                end if;
+            if jump_enable = '1' then 
+                count_buffer <= jump_addres;
+            elsif enable = '1'  then
+                count_buffer <= std_logic_vector(unsigned(count_buffer) + 1);
             elsif reset = '1' then 
                 count_buffer <= (others => '0');
             end if;

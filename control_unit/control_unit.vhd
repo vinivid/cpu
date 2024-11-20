@@ -97,16 +97,27 @@ begin
     );
     
     --Assinala para cada um dos valores do jmp enable qual vai ser a flag que fara com que ele receba
-    select_jmp_enbale <= "01" when op = JMP else 
-                         "10" when op = JEQ else 
-                         "11" when op = JGR else 
+    --Tem que ser somente depois decodificar se não a instrução deichara o programa preso no mesmo enderço
+    --infinitamente
+    select_jmp_enbale <= "01" when op = JMP and (stage = DECODE or stage = EXECUTE) else 
+                         "10" when op = JEQ and (stage = DECODE or stage = EXECUTE) else 
+                         "11" when op = JGR and (stage = DECODE or stage = EXECUTE) else 
                          "00";
 
     --Operação da ula a se feita
     alu_select <= "001" when op = CMP else 
                    op(2 downto 0);
 
-    ePC <= '1' when stage = FETCH or (stage  = EXECUTE and xB = double_address)else 
+    --Abilita o program counter nas seguintes situações
+    ---
+    --O estagio é FETCH e se deve ir para próxima instrução.
+    ---
+    --Quando a instrução dada tiver um imediato nós queromos pulawr esse imediato pois ele não representa uma operação
+    --portanto ele abilita o program counter para que ele pule uma vez.
+    --
+    --Ele pular uma segunda vez nas instruções de JMP n importa porque o jump recebe da registradora
+    --de imediato e não da memória diretamente
+    ePC <= '1' when stage = FETCH or (stage = EXECUTE and xB = double_address) else 
            '0';
     
     eIR <= '1' when stage = FETCH else

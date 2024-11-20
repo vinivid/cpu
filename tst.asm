@@ -1,1 +1,2 @@
-JMP 55
+MOV A 35
+JMP A

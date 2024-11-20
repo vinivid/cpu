@@ -152,6 +152,10 @@ architecture Behaviour of cpu is
 
     signal jmp_enable : STD_LOGIC;
     signal jmp_addres : STD_LOGIC_VECTOR(7 downto 0);
+    --O not sign flag é um sinal especial do program counter que é o not da flag de sinal
+    --Se a flag de sinal for 0 no CMP significa q o operador da esquerda é maior do
+    --que o da direita e portanto tem que ativar o JGR
+    signal not_sign_flag : STD_LOGIC;
 
     --Valor da registradora feita para receber o imediato de forma a não se ter erros na operação de load um jump
     signal IMM_val : STD_LOGIC_VECTOR (7 downto 0);
@@ -218,6 +222,8 @@ begin
     ---------------------------------------------------------------------
     -----------------PROGRAM COUNTER-------------------------------------
     ---------------------------------------------------------------------
+    
+    not_sign_flag <= not SIGN_flag_out;
 
     --Mux que seleciona se tera jump enable ou não
     jmp_selct: mux4to1b
@@ -226,7 +232,7 @@ begin
         a => '0',
         b => '1',
         c => ZERO_flag_out,
-        d => SIGN_flag_out,
+        d => not_sign_flag,
         mux_out => jmp_enable
     );
 
