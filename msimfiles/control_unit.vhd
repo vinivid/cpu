@@ -131,21 +131,21 @@ begin
     --Em qualquer uma das operações da linha 1 (começando do when ) abaixo dessa não sera necessario abilitar a registradora pois ela não vai receber nada
     --A segunda linha representa as operações em que a registradora recebe algo LOAD STORE MOV IN
     --A terceira é o default
-    eA <= '0' when (op = JMP or op = JEQ or op = JGR or op = WAITT or op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT or op = CMP or op = OUTT or op = STORE) and (stage = DECODE or stage = EXECUTE) else 
-          '1' when xA = "00"  and (stage = DECODE or stage = EXECUTE) else
+    eA <= '0' when (op = JMP or op = JEQ or op = JGR or op = WAITT or op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT or op = CMP or op = OUTT or op = STORE) and stage = EXECUTE else 
+          '1' when xA = "00"  and stage = EXECUTE else
           '0';
     
     --Essa registradora é igual a A
-    eB <= '0' when (op = JMP or op = JEQ or op = JGR or op = WAITT or op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT or op = CMP or op = OUTT or op = STORE) and (stage = DECODE or stage = EXECUTE) else 
-          '1' when xA = "01" and (stage = DECODE or stage = EXECUTE) else
+    eB <= '0' when (op = JMP or op = JEQ or op = JGR or op = WAITT or op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT or op = CMP or op = OUTT or op = STORE) and stage = EXECUTE else 
+          '1' when xA = "01" and stage = EXECUTE else
           '0';
     
     --A difereça da reg R para a A e B é que ela sempre recebera quando for operação da ULA q n seja o CMP
     --Um detalhe importante é de que a registradora de resultado não atualiza quando é um CMP, só a registradora de flags
     --Na terceira linha novamente estara as operações de movimentação
-    eR <= '0' when (op = JMP or op = JEQ or op = JGR or op = WAITT or op = CMP or op = OUTT or op = STORE) and (stage = DECODE or stage = EXECUTE) else
-          '1' when (op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT) and (stage = DECODE or stage = EXECUTE) else
-          '1' when xA = "10" and (stage = DECODE or stage = EXECUTE) else 
+    eR <= '0' when (op = JMP or op = JEQ or op = JGR or op = WAITT or op = CMP or op = OUTT or op = STORE) and stage = EXECUTE else
+          '1' when (op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT) and stage = EXECUTE else
+          '1' when xA = "10" and  stage = EXECUTE else 
           '0';
     
     --Abilita a registradora do imediato receber somente se tiver um valor imediato e tiver durante o stagio de decode
@@ -153,7 +153,7 @@ begin
             '0';
 
     --As registradoras de flag só estarão ativadas quando for uma operação de ula ou uma operação de comparação
-    eF <= '1' when (op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT or op = CMP) and (stage = DECODE or stage = EXECUTE) else 
+    eF <= '1' when (op = ADD or op = SUB or op = ANDD or op = ORR or op = NOTT or op = CMP) and stage = EXECUTE else 
           '0';
     
     --A output unit é abilitada somente quando a operação é OUT

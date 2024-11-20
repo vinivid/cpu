@@ -1,5 +1,5 @@
-IN A ; L ^e o que est ´a no input para Registrador A
-IN B ; L ^e o que est ´a no input para Registrador B
+MOV A 3; L ^e o que est ´a no input para Registrador A
+MOV B 2; L ^e o que est ´a no input para Registrador B
 MOV R, 0 ; Coloca o valor zero no Registrador R
 LOOP_START:
     CMP B, 0 ; Compara B com 0
