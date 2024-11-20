@@ -97,6 +97,8 @@ begin
     );
     
     --Assinala para cada um dos valores do jmp enable qual vai ser a flag que fara com que ele receba
+    --Tem que ser somente depois decodificar se não a instrução deichara o programa preso no mesmo enderço
+    --infinitamente
     select_jmp_enbale <= "01" when op = JMP and (stage = DECODE or stage = EXECUTE) else 
                          "10" when op = JEQ and (stage = DECODE or stage = EXECUTE) else 
                          "11" when op = JGR and (stage = DECODE or stage = EXECUTE) else 
@@ -119,7 +121,6 @@ begin
            '0';
     
     eIR <= '1' when stage = FETCH else
-           '1' when stage = EXECUTE and xB = double_address else 
            '0';
     --Em qualquer uma das operações da linha 1 (começando do when ) abaixo dessa não sera necessario abilitar a registradora pois ela não vai receber nada
     --A segunda linha representa as operações em que a registradora recebe algo LOAD STORE MOV IN

@@ -121,7 +121,6 @@ begin
            '0';
     
     eIR <= '1' when stage = FETCH else
-           '1' when stage = EXECUTE and xB = double_address else 
            '0';
     --Em qualquer uma das operações da linha 1 (começando do when ) abaixo dessa não sera necessario abilitar a registradora pois ela não vai receber nada
     --A segunda linha representa as operações em que a registradora recebe algo LOAD STORE MOV IN
