@@ -13,7 +13,7 @@ def is_binary_string(string : str) -> bool:
 
 def print_error_colored(line_words : list, line_number: int):
     print(f'{sys.argv[1]} na linha {line_number}')
-    print(f'{line_words[0]}', end=' ')
+    print(f'{'\033[0;31m'}={line_words[0]}', end=' ')
 
     for i in range(1, len(line_words) - 1):
         print(f'{line_words[i]}', end=' ')
