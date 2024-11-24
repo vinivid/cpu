@@ -1,0 +1,141 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "display_test[0]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[1]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[2]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[3]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[4]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[5]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[6]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[7]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[8]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[9]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[10]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[11]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[12]",
+					"strict" : false
+				},
+				{
+					"name" : "display_test[13]",
+					"strict" : false
+				},
+				{
+					"name" : "data_out[0]",
+					"strict" : false
+				},
+				{
+					"name" : "data_out[1]",
+					"strict" : false
+				},
+				{
+					"name" : "data_out[2]",
+					"strict" : false
+				},
+				{
+					"name" : "data_out[3]",
+					"strict" : false
+				},
+				{
+					"name" : "data_out[4]",
+					"strict" : false
+				},
+				{
+					"name" : "data_out[5]",
+					"strict" : false
+				},
+				{
+					"name" : "data_out[6]",
+					"strict" : false
+				},
+				{
+					"name" : "data_out[7]",
+					"strict" : false
+				},
+				{
+					"name" : "clk",
+					"strict" : false
+				},
+				{
+					"name" : "reset_n",
+					"strict" : false
+				},
+				{
+					"name" : "input_fpga[0]",
+					"strict" : false
+				},
+				{
+					"name" : "input_fpga[1]",
+					"strict" : false
+				},
+				{
+					"name" : "input_fpga[2]",
+					"strict" : false
+				},
+				{
+					"name" : "input_fpga[3]",
+					"strict" : false
+				},
+				{
+					"name" : "input_fpga[4]",
+					"strict" : false
+				},
+				{
+					"name" : "input_fpga[5]",
+					"strict" : false
+				},
+				{
+					"name" : "input_fpga[6]",
+					"strict" : false
+				},
+				{
+					"name" : "input_fpga[7]",
+					"strict" : false
+				},
+				{
+					"name" : "confirm_button",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

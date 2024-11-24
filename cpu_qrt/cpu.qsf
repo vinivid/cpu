@@ -47,4 +47,44 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256
+set_global_assignment -name VHDL_FILE display_7seg.vhd
 set_global_assignment -name QIP_FILE mem256x8mif.qip
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_location_assignment PIN_AA2 -to data_out[0]
+set_location_assignment PIN_AA1 -to data_out[1]
+set_location_assignment PIN_W2 -to data_out[2]
+set_location_assignment PIN_Y3 -to data_out[3]
+set_location_assignment PIN_N2 -to data_out[4]
+set_location_assignment PIN_N1 -to data_out[5]
+set_location_assignment PIN_U2 -to data_out[6]
+set_location_assignment PIN_U1 -to data_out[7]
+set_location_assignment PIN_U13 -to input_fpga[0]
+set_location_assignment PIN_V13 -to input_fpga[1]
+set_location_assignment PIN_T13 -to input_fpga[2]
+set_location_assignment PIN_T12 -to input_fpga[3]
+set_location_assignment PIN_AA15 -to input_fpga[4]
+set_location_assignment PIN_AB15 -to input_fpga[5]
+set_location_assignment PIN_AA14 -to input_fpga[6]
+set_location_assignment PIN_AA13 -to input_fpga[7]
+set_location_assignment PIN_U21 -to display_test[6]
+set_location_assignment PIN_V21 -to display_test[5]
+set_location_assignment PIN_W22 -to display_test[4]
+set_location_assignment PIN_W21 -to display_test[3]
+set_location_assignment PIN_Y22 -to display_test[2]
+set_location_assignment PIN_Y21 -to display_test[1]
+set_location_assignment PIN_AA22 -to display_test[0]
+set_location_assignment PIN_AA20 -to display_test[13]
+set_location_assignment PIN_AB20 -to display_test[12]
+set_location_assignment PIN_AA19 -to display_test[11]
+set_location_assignment PIN_AA18 -to display_test[10]
+set_location_assignment PIN_AB18 -to display_test[9]
+set_location_assignment PIN_AA17 -to display_test[8]
+set_location_assignment PIN_U22 -to display_test[7]
+set_location_assignment PIN_U7 -to confirm_button
+set_location_assignment PIN_W9 -to reset_n
+set_location_assignment PIN_M9 -to clk
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

@@ -1,0 +1,6 @@
+
+State Machine - |cpu|control_unit:cu|stage
+Name stage.EXECUTE stage.DECODE stage.FETCH 
+stage.FETCH 0 0 0 
+stage.DECODE 0 1 1 
+stage.EXECUTE 1 0 1 

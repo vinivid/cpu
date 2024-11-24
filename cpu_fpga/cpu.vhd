@@ -85,13 +85,6 @@ architecture Behaviour of cpu is
         );
     end component;
 
-    component display_7seg is
-        port (
-            input_disp : in STD_LOGIC_VECTOR (3 downto 0);
-            out_disp : out STD_LOGIC_VECTOR (6 downto 0)
-        );
-    end component;
-
     --component ram256x8 is
     --    port (
     --        address	: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
@@ -278,18 +271,6 @@ architecture Behaviour of cpu is
 begin
     
     reset <= not reset_n;
-
-    disp1: display_7seg
-     port map(
-        input_disp => IR_val(3 downto 0),
-        out_disp => display_test(6 downto 0)
-    );
-
-    disp2: display_7seg
-     port map(
-        input_disp => IR_val(7 downto 4),
-        out_disp => display_test(13 downto 7)
-    );
 
     ---------------------------------------------------------------------
     -----------------UNIDADE DE CONTROLE---------------------------------
