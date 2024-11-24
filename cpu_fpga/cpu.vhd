@@ -8,7 +8,6 @@ entity cpu is
         confirm_button : IN STD_LOGIC;
         input_fpga : IN STD_LOGIC_VECTOR (7 downto 0); --Em essencia o sinal da unidade de input
         reset_n : IN STD_LOGIC;
-        display_test : OUT STD_LOGIC_VECTOR(13 downto 0);
         data_out : OUT STD_LOGIC_VECTOR (7 downto 0)
     );
 end entity cpu;
