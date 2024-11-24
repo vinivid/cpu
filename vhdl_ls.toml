@@ -1,10 +1,18 @@
 [libraries]
 
-lib14.files = [
+lib16.files = [
     'cpu.vhd'
 ]
 
 lib15.files = [
+    'control_unit/input_unit.vhd'
+]
+
+lib14.files = [
+    'control_unit/roll_over.vhd'
+]
+
+lib13.files = [
     'control_unit/output_unit.vhd'
 ]
 
