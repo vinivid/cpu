@@ -66,6 +66,7 @@ architecture Behaviour of cpu is
     component control_unit is
         port (
             instruction : in STD_LOGIC_VECTOR (7 downto 0);
+            reset : in STD_LOGIC;
             clk : in STD_LOGIC;
             break_loop : in STD_LOGIC;
             control_mask : out STD_LOGIC_VECTOR (21 downto 0)
@@ -253,7 +254,7 @@ architecture Behaviour of cpu is
 
     ------------------------------------------------------------------------
     --Sinal especial do quartus, abilitar descomenar quando for colocar na FPGA
-    signal not_confirm_button : STD_LOGIC;
+    --signal not_confirm_button : STD_LOGIC;
 begin
     
     ---------------------------------------------------------------------
@@ -263,6 +264,7 @@ begin
     cu: control_unit
      port map(
         instruction => IR_val,
+        reset => reset,
         clk => clk,
         break_loop => next_instruction,
         control_mask => bitmask

@@ -5,6 +5,7 @@ use IEEE.numeric_std.all;
 entity control_unit is
     port (
         instruction : in STD_LOGIC_VECTOR (7 downto 0);
+        reset : in STD_LOGIC;
         clk : in STD_LOGIC;
         break_loop : in STD_LOGIC;
         control_mask : out STD_LOGIC_VECTOR (21 downto 0)
@@ -124,7 +125,7 @@ begin
     ePC <= '1' when stage = FETCH or (stage = EXECUTE and xB = double_address) else 
            '0';
     
-    --A instruction register só estara ativa no estado de decode
+    --A instruction register só estara ativa no estado de fetch
     eIR <= '1' when stage = FETCH else
            '0';
 
@@ -180,18 +181,22 @@ begin
     process (clk)
     begin
         if rising_edge(clk) then
-            case stage is
-                when FETCH =>
-                    stage <= DECODE;
-                when DECODE =>
-                    stage <= EXECUTE;
-                when EXECUTE =>
-                    if (op = INN or op = WAITT) and break_loop = '0' then 
+            if reset = '1' then 
+                stage <= FETCH;
+            else 
+                case stage is
+                    when FETCH =>
+                        stage <= DECODE;
+                    when DECODE =>
                         stage <= EXECUTE;
-                    else 
-                        stage <= FETCH;
-                    end if;
-            end case;
+                    when EXECUTE =>
+                        if (op = INN or op = WAITT) and break_loop = '0' then 
+                            stage <= EXECUTE;
+                        else 
+                            stage <= FETCH;
+                        end if;
+                end case;
+            end if;
         end if;    
     end process;
 

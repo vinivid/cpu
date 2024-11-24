@@ -22,12 +22,12 @@ begin
     process (clk)
     begin
         if rising_edge(clk) then
-            if jump_enable = '1' then 
+            if reset = '1' then 
+                count_buffer <= (others => '0');
+            elsif jump_enable = '1' then 
                 count_buffer <= jump_addres;
             elsif enable = '1'  then
                 count_buffer <= std_logic_vector(unsigned(count_buffer) + 1);
-            elsif reset = '1' then 
-                count_buffer <= (others => '0');
             end if;
         end if;
     end process;
