@@ -8,6 +8,7 @@ entity cpu is
         confirm_button : IN STD_LOGIC;
         input_fpga : IN STD_LOGIC_VECTOR (7 downto 0); --Em essencia o sinal da unidade de input
         reset_n : IN STD_LOGIC;
+        display_test : OUT STD_LOGIC_VECTOR(13 downto 0);
         data_out : OUT STD_LOGIC_VECTOR (7 downto 0)
     );
 end entity cpu;
@@ -81,6 +82,13 @@ architecture Behaviour of cpu is
             jump_enable : in STD_LOGIC;
             jump_addres : in STD_LOGIC_VECTOR(7 downto 0);
             adrres_out : out STD_LOGIC_VECTOR(7 downto 0)
+        );
+    end component;
+
+    component display_7seg is
+        port (
+            input_disp : in STD_LOGIC_VECTOR (3 downto 0);
+            out_disp : out STD_LOGIC_VECTOR (6 downto 0)
         );
     end component;
 
@@ -270,6 +278,18 @@ architecture Behaviour of cpu is
 begin
     
     reset <= not reset_n;
+
+    disp1: display_7seg
+     port map(
+        input_disp => IR_val(3 downto 0),
+        out_disp => display_test(6 downto 0)
+    );
+
+    disp2: display_7seg
+     port map(
+        input_disp => IR_val(7 downto 4),
+        out_disp => display_test(13 downto 7)
+    );
 
     ---------------------------------------------------------------------
     -----------------UNIDADE DE CONTROLE---------------------------------
