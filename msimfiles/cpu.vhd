@@ -250,6 +250,10 @@ architecture Behaviour of cpu is
     --xB a segunda registradora (nas operaçoes que podem receber duas)
     alias xA : STD_LOGIC_VECTOR is bitmask(3 downto 2);
     alias xB : STD_LOGIC_VECTOR is bitmask(1 downto 0);
+
+    ------------------------------------------------------------------------
+    --Sinal especial do quartus, abilitar descomenar quando for colocar na FPGA
+    signal not_confirm_button : STD_LOGIC;
 begin
     
     ---------------------------------------------------------------------
@@ -374,7 +378,6 @@ begin
        d => MEM_val,
        mux_out => B_mux_data_select
     );
-    
 
     B_data_or_insert_mux: mux2to1
     generic map(
@@ -533,8 +536,13 @@ begin
         mux_out => DATA_mux_inp_mem
     );
 
+    --Na pasta cpu FPGA tem a versão para colocar na FPGA
+    --NAO COMPILAR COM ESSA VERSAO SE NAO NAO VAI FUNCIONAR
+
     --É importante notar que a RAM utilizada para o quartus é diferente pois para
-    --Inicializar no modelsim é necessario de uma função que não tem no IP do quartus
+    --Inicializar no modelsim é necessario de uma função que não tem no IP do quartus só 
+    --no quartus também n funciona inicializar a memória com textIO ent tem q comentar
+    --e descomentar com base no que vc ta testando
     ram256x8_main: ram256x8
     port map(
        address => ADDR_mux_inp_mem,
@@ -587,6 +595,9 @@ begin
     ---------------------------------------------------------------------
     ---------------------------UNIDADE DE INPUT--------------------------
     ---------------------------------------------------------------------
+
+    --Na pasta cpu FPGA tem a versão para colocar na FPGA
+    --NAO COMPILAR COM ESSA VERSAO SE NAO NAO VAI FUNCIONAR
 
     input_unit_inst: input_unit
      port map(
