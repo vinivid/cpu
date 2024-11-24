@@ -6,7 +6,7 @@ entity cpu is
     port (
         clk : IN STD_LOGIC;
         confirm_button : IN STD_LOGIC;
-        INPUT_val : IN STD_LOGIC_VECTOR (7 downto 0); --Em essencia o sinal da unidade de input
+        input_fpga : IN STD_LOGIC_VECTOR (7 downto 0); --Em essencia o sinal da unidade de input
         reset : IN STD_LOGIC;
         data_out : OUT STD_LOGIC_VECTOR (7 downto 0)
     );
@@ -103,6 +103,16 @@ architecture Behaviour of cpu is
         );
     end component;
 
+    component input_unit is
+        port (
+            clk : in STD_LOGIC;
+            send_push : in STD_LOGIC;
+            inp : in STD_LOGIC_VECTOR(7 downto 0);
+            go_next : out STD_LOGIC := '0';
+            inp_v : out STD_LOGIC_VECTOR(7 downto 0)
+        );
+    end component;
+
     component output_unit is
         port (
             output_enable : in STD_LOGIC;
@@ -163,6 +173,12 @@ architecture Behaviour of cpu is
     signal SIGN_flag_out : STD_LOGIC;
     signal CARRY_flag_out : STD_LOGIC;
     signal OVERFLOW_flag_out : STD_LOGIC;
+
+    --É o valor faz com que a unidade de controle va para a próxima instrução depois da operação de in
+    signal next_instruction : STD_LOGIC;
+
+    --Valor que vem da unidade de input
+    signal INPUT_val : STD_LOGIC_VECTOR(7 downto 0);
 
     signal jmp_enable : STD_LOGIC;
     signal jmp_addres : STD_LOGIC_VECTOR(7 downto 0);
@@ -244,7 +260,7 @@ begin
      port map(
         instruction => IR_val,
         clk => clk,
-        break_loop => confirm_button,
+        break_loop => next_instruction,
         control_mask => bitmask
     );
 
@@ -566,6 +582,19 @@ begin
         op => alu_select,
         r => ALU_out,
         flags => ALU_flag_out
+    );
+
+    ---------------------------------------------------------------------
+    ---------------------------UNIDADE DE INPUT--------------------------
+    ---------------------------------------------------------------------
+
+    input_unit_inst: input_unit
+     port map(
+        clk => clk,
+        send_push => confirm_button,
+        inp => input_fpga,
+        go_next => next_instruction,
+        inp_v => INPUT_val
     );
     
     ---------------------------------------------------------------------
