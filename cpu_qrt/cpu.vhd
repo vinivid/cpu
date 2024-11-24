@@ -7,7 +7,7 @@ entity cpu is
         clk : IN STD_LOGIC;
         confirm_button : IN STD_LOGIC;
         input_fpga : IN STD_LOGIC_VECTOR (7 downto 0); --Em essencia o sinal da unidade de input
-        reset : IN STD_LOGIC;
+        reset_n : IN STD_LOGIC;
         data_out : OUT STD_LOGIC_VECTOR (7 downto 0)
     );
 end entity cpu;
@@ -265,8 +265,12 @@ architecture Behaviour of cpu is
     ------------------------------------------------------------------------
     --Sinal especial do quartus, abilitar descomenar quando for colocar na FPGA
     signal not_confirm_button : STD_LOGIC;
+    --O reset também precisa ser notado
+    signal reset : STD_LOGIC;
 begin
     
+    reset <= not reset_n;
+
     ---------------------------------------------------------------------
     -----------------UNIDADE DE CONTROLE---------------------------------
     ---------------------------------------------------------------------
