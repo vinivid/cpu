@@ -33,7 +33,7 @@ begin
     
     roll_counter: roll_over
      generic map(
-        count_to => 4
+        count_to => 10000000
     )
      port map(
         reset => send_push,
