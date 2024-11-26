@@ -8,6 +8,9 @@ entity cpu is
         confirm_button : IN STD_LOGIC;
         input_fpga : IN STD_LOGIC_VECTOR (7 downto 0); --Em essencia o sinal da unidade de input
         reset_n : IN STD_LOGIC;
+        ir_disp : OUT STD_LOGIC_VECTOR(13 downto 0);
+        mem_val_disp : OUT STD_LOGIC_VECTOR(13 downto 0);
+        r_disp : OUT STD_LOGIC_VECTOR(13 downto 0);
         data_out : OUT STD_LOGIC_VECTOR (7 downto 0)
     );
 end entity cpu;
@@ -144,6 +147,13 @@ architecture Behaviour of cpu is
         );
     end component;
 
+    component display_7seg is
+        port (
+            input_disp : in STD_LOGIC_VECTOR (3 downto 0);
+            out_disp : out STD_LOGIC_VECTOR (6 downto 0)
+        );
+    end component;
+
     --Barramentos da cpu
     --É o barramento do endereço que esta saindo do program counter
     signal pc_address : STD_LOGIC_VECTOR(7 downto 0);
@@ -270,6 +280,43 @@ architecture Behaviour of cpu is
 begin
     
     reset <= not reset_n;
+
+    ------------------------------------Debug----------------------------
+    dsp_1_ir: display_7seg
+     port map(
+        input_disp => IR_val(3 downto 0),
+        out_disp => ir_disp(6 downto 0)
+    );
+
+    disp_2_ir: display_7seg
+     port map(
+        input_disp => IR_val(7 downto 4),
+        out_disp => ir_disp(13 downto 7)
+    );
+
+    dsp_1_mem_val: display_7seg
+     port map(
+        input_disp => MEM_val(3 downto 0),
+        out_disp => mem_val_disp(6 downto 0)
+    );
+
+    dsp_2_mem_val: display_7seg
+     port map(
+        input_disp => MEM_val(7 downto 4),
+        out_disp => mem_val_disp(13 downto 7)
+    );
+
+    dsp_1_reg_r: display_7seg
+     port map(
+        input_disp => R_val(3 downto 0),
+        out_disp => r_disp(6 downto 0)
+    );
+
+    dsp_2_reg_r: display_7seg
+     port map(
+        input_disp => R_val(7 downto 4),
+        out_disp => r_disp(13 downto 7)
+    );
 
     ---------------------------------------------------------------------
     -----------------UNIDADE DE CONTROLE---------------------------------
